@@ -10,13 +10,35 @@ import org.springframework.cloud.netflix.feign.FeignClient
 import org.springframework.cloud.netflix.zuul.EnableZuulProxy
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.boot.web.servlet.FilterRegistrationBean
+import org.springframework.context.annotation.Bean
+import org.springframework.core.Ordered
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+import org.springframework.web.filter.CorsFilter
+
 
 @EnableZuulProxy
 @EnableCircuitBreaker
 @EnableFeignClients
 @EnableDiscoveryClient
 @SpringBootApplication
-class EdgeServiceApplication
+class EdgeServiceApplication {
+
+    @Bean
+    open fun simpleCorsFilter(): FilterRegistrationBean {
+        val source = UrlBasedCorsConfigurationSource()
+        val config = CorsConfiguration()
+        config.allowCredentials = true
+        config.allowedOrigins = listOf("http://localhost:4200")
+        config.allowedMethods = listOf("GET", "POST", "PATCH");
+        config.allowedHeaders = listOf("*")
+        source.registerCorsConfiguration("/**", config)
+        val bean = FilterRegistrationBean(CorsFilter(source))
+        bean.order = Ordered.HIGHEST_PRECEDENCE
+        return bean
+    }
+}
 
 fun main(args: Array<String>) {
     SpringApplication.run(EdgeServiceApplication::class.java, *args)
